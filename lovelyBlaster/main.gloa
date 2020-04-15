@@ -17,13 +17,12 @@ export !import "os"
 export !import "utils"
 export V2 :: !import "math/vector2"
 
-export !import "love/audio"
-export !import "love/basic"
-export !import "love/event"
-export !import "love/filesystem"
-export !import "love/graphics"
-export !import "love/keyboard"
-export !import "love/math"
+export LG :: !import "love/graphics"
+export LK :: !import "love/keyboard"
+export LM :: !import "love/math"
+local  LA :: !import "love/audio"
+local  LE :: !import "love/event"
+local  LF :: !import "love/filesystem"
 
 export !self
 export !load "entities"
@@ -45,12 +44,13 @@ export STAR_DISTANCE_OUTSIDE_SCREEN :: .05 * CAMERA_HEIGHT
 
 
 
-export fontHud:   LoveFont = NULL
-export fontWorld: LoveFont = NULL
+export fontHud:   LG.Font = NULL
+export fontWorld: LG.Font = NULL
 
-export lightImage: LoveImage = NULL
+export lightImage: LG.Image = NULL
 
-local currentLevel: Level = NULL
+local theCanvas:    LG.Canvas = NULL
+local currentLevel: Level     = NULL
 
 
 
@@ -118,7 +118,7 @@ local Star :: struct {
 }
 
 local Sound :: struct {
-	source: LoveSource = NULL,
+	source: LA.Source = NULL,
 	volumeVariation: float,
 	pitchVariation:  float,
 }
@@ -131,11 +131,11 @@ local loadSounds :: () {
 	local loadSound :: (name:string, path:string, volume,volumeVar:float, pitch,pitchVar:float, loop=false) {
 		!if DISABLE_SOUNDS  path = "sounds/silence.ogg"
 
-		local source = loveNewSource(path, LoveSourceType.STATIC)
+		local source = LA.newSource(path, LA.SourceType.STATIC)
 
-		loveSetVolume (source, volume)
-		loveSetPitch  (source, pitch)
-		loveSetLooping(source, loop)
+		source.setVolume!(volume)
+		source.setPitch!(pitch)
+		source.setLooping!(loop)
 
 		local sound: Sound = {source=source, volumeVariation=volumeVar, pitchVariation=pitchVar}
 		sounds[name] = sound
@@ -154,10 +154,10 @@ export playSound :: (name:string, volumeScale=1.0) {
 		writeLine(STDERR, format("Error: No sound '%s'.", name))
 		return
 	}
-	local clone = loveCloneSource(sound.source)
-	loveSetVolume(clone, loveGetVolume(clone)*getRandom(1-sound.volumeVariation, 1+sound.volumeVariation)*volumeScale)
-	loveSetPitch (clone, loveGetPitch (clone)*getRandom(1-sound.pitchVariation,  1+sound.pitchVariation))
-	lovePlay(clone)
+	local clone = sound.source.clone!()
+	clone.setVolume!(clone.getVolume!() * getRandom(1-sound.volumeVariation, 1+sound.volumeVariation) * volumeScale)
+	clone.setPitch !(clone.getPitch !() * getRandom(1-sound.pitchVariation,  1+sound.pitchVariation))
+	LA.play(clone)
 }
 
 
@@ -180,32 +180,38 @@ local startNewGame :: () {
 	}
 }
 
+local initCanvas :: () {
+	local scale = 1 -- @Incomplete: Subpixels.
+	theCanvas   = LG.newCanvas(round(200*scale), round(150*scale))
+}
+
 local onLoad :: (args:[]string, argsRaw:[]string) {
 	!if DEV {
 		disableBuffering(STDOUT)
 		disableBuffering(STDERR)
 	}
+	setRandomSeed(getTime())
 
-	fontHud   = loveNewFont(16)
-	fontWorld = loveNewFont(32)
+	fontHud   = LG.newFont(16)
+	fontWorld = LG.newFont(32)
 
-	lightImage = loveNewImage("gfx/light.png")
+	lightImage = LG.newImage("gfx/light.png")
 
 	loadSounds()
 
-	setRandomSeed(getTime())
+	initCanvas()
 	startNewGame()
 }
 
 
 
-local onKeyPressed :: (key:LoveKey, scancode:LoveScancode, isRepeat:bool) {
+local onKeyPressed :: (key:LK.Key, scancode:LK.Scancode, isRepeat:bool) {
 	local player = currentLevel.player
 
 	if key == {
-		case "escape": loveQuit(0)
+		case "escape": LE.quit(0)
 		case "r":      startNewGame()
-		case "f10":    if loveIsKeyDown("lctrl","rctrl")  loveRestart()  else  startNewGame()
+		case "f10":    if LK.isKeyDown("lctrl","rctrl")  LE.restart()  else  startNewGame()
 	}
 	if scancode == {
 		case "x": player.wantsToShoot = true
@@ -265,10 +271,10 @@ local getRandomWave :: (difficultyMax:int) -> EnemyWave {
 
 local onUpdate :: (dt:float) {
 	!if DEV {
-		if loveIsKeyDown("lctrl","rctrl")
-			dt *= loveIsKeyDown("lshift","rshift") ? 1.0/80 : 1.0/5
-		elseif loveIsKeyDown"<"
-			dt *= loveIsKeyDown("lshift","rshift") ? 1.0*20 : 1.0*5
+		if LK.isKeyDown("lctrl","rctrl")
+			dt *= LK.isKeyDown("lshift","rshift") ? 1.0/80 : 1.0/5
+		elseif LK.isKeyDown"<"
+			dt *= LK.isKeyDown("lshift","rshift") ? 1.0*20 : 1.0*5
 	}
 
 	uiTime                    = uiTime+dt
@@ -330,23 +336,23 @@ local onUpdate :: (dt:float) {
 
 
 local onDraw :: () {
-	local ww, wh    = loveGetWindowDimensions()
+	local ww, wh    = LG.getWindowDimensions()
 	local viewScale = min(ww/LEVEL_WIDTH, wh/CAMERA_HEIGHT)
 	local player    = currentLevel.player
 
-	loveGraphicsReset()
-	loveClear(.1, .1, .1)
+	LG.resetAll()
+	LG.clear(.1, .1, .1)
 
-	loveCoordinateSystemTranslate(ww/2, wh/2)
-	loveCoordinateSystemScale(viewScale)
-	loveCoordinateSystemTranslate(-LEVEL_WIDTH/2, -CAMERA_HEIGHT/2)
+	LG.coordsTranslate(ww/2, wh/2)
+	LG.coordsScale(viewScale)
+	LG.coordsTranslate(-LEVEL_WIDTH/2, -CAMERA_HEIGHT/2)
 
-	local viewX1, viewY1 = loveGlobalToScreen(0, 0)
-	local viewX2, viewY2 = loveGlobalToScreen(LEVEL_WIDTH, CAMERA_HEIGHT)
+	local viewX1, viewY1 = LG.globalToScreen(0, 0)
+	local viewX2, viewY2 = LG.globalToScreen(LEVEL_WIDTH, CAMERA_HEIGHT)
 	local viewWidth      = viewX2-viewX1
 	local viewHeight     = viewY2-viewY1
-	loveSetScissor(viewX1, viewY1, viewWidth, viewHeight)
-	loveClear(.5, .05, .1)
+	LG.setScissor(viewX1, viewY1, viewWidth, viewHeight)
+	LG.clear(.5, .05, .1)
 
 	--
 	-- World
@@ -354,35 +360,35 @@ local onDraw :: () {
 
 	local shakeX = .6 * currentLevel.cameraShake * cos(currentLevel.time/.10*TAU)
 	local shakeY = .4 * currentLevel.cameraShake * cos(currentLevel.time/.17*TAU)
-	loveCoordinateSystemTranslate(shakeX, shakeY)
+	LG.coordsTranslate(shakeX, shakeY)
 
 	-- Stars.
-	loveSetBlendMode(LoveBlendMode.ADD)
+	LG.setBlendMode(LG.BlendMode.ADD)
 	for currentLevel.stars {
-		loveSetColor(1, 1, 1, lerp(.1, .3, it.size))
-		loveDrawAnchored(lightImage, it.x,it.y, .5,.5, 0, lerp(.01, .03, it.size))
+		LG.setColor(1, 1, 1, lerp(.1, .3, it.size))
+		LG.drawAnchored(lightImage, it.x,it.y, .5,.5, 0, lerp(.01, .03, it.size))
 	}
-	loveResetBlendMode()
+	LG.resetBlendMode()
 
 	-- Entities.
-	loveSetFont(fontWorld)
+	LG.setFont(fontWorld)
 	for currentLevel.entities  drawEntity(currentLevel, it)
 
 	-- Lights.
 	do {
-		local iw, ih = loveGetDimensions(lightImage)
+		local iw, ih = lightImage.getDimensions!()
 
-		loveSetBlendMode(LoveBlendMode.ADD)
+		LG.setBlendMode(LG.BlendMode.ADD)
 		for currentLevel.lightsToDraw {
-			loveSetColor(it.r, it.g, it.b, it.a)
-			loveDrawAnchored(lightImage, it.x,it.y, .5,.5, 0, it.radiusX/(iw/2),it.radiusY/(ih/2))
+			LG.setColor(it.r, it.g, it.b, it.a)
+			LG.drawAnchored(lightImage, it.x,it.y, .5,.5, 0, it.radiusX/(iw/2),it.radiusY/(ih/2))
 		}
-		loveResetBlendMode()
+		LG.resetBlendMode()
 
 		currentLevel.lightsToDraw = {}
 	}
 
-	loveCoordinateSystemTranslate(-shakeX, -shakeY)
+	LG.coordsTranslate(-shakeX, -shakeY)
 
 	--
 	-- HUD
@@ -397,23 +403,23 @@ local onDraw :: () {
 	}
 
 	local font  = fontHud
-	local fontH = loveGetHeight(font)
+	local fontH = font.getHeight!()
 
-	loveGraphicsReset()
-	loveCoordinateSystemTranslate(round(viewX1), round(viewY1))
+	LG.resetAll()
+	LG.coordsTranslate(round(viewX1), round(viewY1))
 
-	loveSetFont(font)
+	LG.setFont(font)
 
 	-- Health.
 	for i = 1, player.healthMax {
 		if i > player.health
-			loveSetColor(0, 0, 0)
+			LG.setColor(0, 0, 0)
 		else
-			loveSetColor(0, 1, 0)
+			LG.setColor(0, 1, 0)
 
 		local RADIUS  :: 10
 		local SPACING :: 5
-		loveDrawCircleFill(SPACING+RADIUS + (i-1)*(SPACING+2*RADIUS), SPACING+RADIUS, RADIUS, 32)
+		LG.drawCircleFill(SPACING+RADIUS + (i-1)*(SPACING+2*RADIUS), SPACING+RADIUS, RADIUS, 32)
 	}
 
 	-- Score.
@@ -422,7 +428,7 @@ local onDraw :: () {
 
 		local text      = format("SCORE %d", currentLevel.score)
 		local textScale = 1 + .1*highlight
-		local textWidth = loveGetWidth(font, text) * textScale
+		local textWidth = font.getWidth!(text) * textScale
 
 		local r = lerp(1.0, 1.0, highlight)
 		local g = lerp(0.8, 1.0, highlight)
@@ -432,8 +438,8 @@ local onDraw :: () {
 		local x = (viewWidth - textWidth) // 2
 		local y = EDGE_SPACING + HIGHLIGHT_MOVEMENT * highlight
 
-		loveSetColor(r, g, b)
-		loveDrawText(text, x, y, 0, textScale)
+		LG.setColor(r, g, b)
+		LG.drawText(text, x, y, 0, textScale)
 	}
 
 	-- Difficulty.
@@ -442,7 +448,7 @@ local onDraw :: () {
 
 		local text      = format("DIFFICULTY %d", currentLevel.difficulty)
 		local textScale = 1 + .5*highlight
-		local textWidth = loveGetWidth(font, text) * textScale
+		local textWidth = font.getWidth!(text) * textScale
 
 		local r = lerp(1.0, 1.0, highlight)
 		local g = lerp(0.8, 1.0, highlight)
@@ -452,8 +458,8 @@ local onDraw :: () {
 		local x = round(viewWidth) - EDGE_SPACING - textWidth - HIGHLIGHT_MOVEMENT*highlight
 		local y = EDGE_SPACING + HIGHLIGHT_MOVEMENT * highlight
 
-		loveSetColor(r, g, b)
-		loveDrawText(text, x, y, 0, textScale)
+		LG.setColor(r, g, b)
+		LG.drawText(text, x, y, 0, textScale)
 	}
 
 	-- Restart prompt.
@@ -464,33 +470,40 @@ local onDraw :: () {
 
 		local timeSinceDeath = currentLevel.time - player.timeDamaged
 
-		local x = ( viewWidth  - loveGetWidth(font, TEXT) ) // 2
-		local y = ( viewHeight - loveGetHeight(font)      ) // 2
+		local x = ( viewWidth  - font.getWidth!(TEXT) ) // 2
+		local y = ( viewHeight - font.getHeight!()    ) // 2
 		local a = clamp01((timeSinceDeath-TEXT_DELAY) / TEXT_FADE_TIME)
 
-		loveSetColor(1, 1, 1, a)
-		loveDrawText(TEXT, x, y)
+		LG.setColor(1, 1, 1, a)
+		LG.drawText(TEXT, x, y)
 	}
 
 	!if DEV {
-		if loveIsKeyDown"tab" {
+		if LK.isKeyDown"tab" {
 			local y = viewY2-fontH
-			loveGraphicsReset()
-			loveSetColor(1, 1, 1)
-			loveDrawText(format("Entities: %d", #currentLevel.entities), viewX1, y) ; y -= fontH
+			LG.resetAll()
+			LG.setColor(1, 1, 1)
+			LG.drawText(format("Entities: %d", #currentLevel.entities), viewX1, y) ; y -= fontH
 		}
 	}
 }
 
 
 
+local onResize :: (w,h:int) {
+	initCanvas()
+}
+
+
+
 local main :: () {
-	using LoveEvent
-	loveSetEventHandler(LOAD,        onLoad)
-	loveSetEventHandler(KEY_PRESSED, onKeyPressed)
-	loveSetEventHandler(UPDATE,      onUpdate)
-	loveSetEventHandler(DRAW,        onDraw)
-	loveRemoveEventHandler(ERROR_HANDLER) -- We want Glóa to handle all errors (for now, at least).
+	using LE.Event
+	LE.setEventHandler(LOAD,        onLoad)
+	LE.setEventHandler(KEY_PRESSED, onKeyPressed)
+	LE.setEventHandler(UPDATE,      onUpdate)
+	LE.setEventHandler(DRAW,        onDraw)
+	LE.setEventHandler(RESIZE,      onResize)
+	LE.removeEventHandler(ERROR_HANDLER) -- We want Glóa to handle all errors (for now, at least).
 }
 
 

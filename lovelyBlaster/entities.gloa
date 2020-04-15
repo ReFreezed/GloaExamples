@@ -329,8 +329,8 @@ export spawnNextEntity :: (level:Level) {
 			return path[coordCount-1], path[coordCount]
 		}
 
-		local curve  = loveNewBezierCurve(curvePath)
-		local path   = loveRender(curve, 5)
+		local curve  = LM.newBezierCurve(curvePath)
+		local path   = curve.render!(5)
 		local length = getPathLength(path)
 
 		local APPROXIMATE_SEGMENT_LENGTH :: 3
@@ -366,10 +366,10 @@ export updateEntity :: (level:Level, ent:Entity, dt:float) {
 
 		-- Move.
 		local dirX, dirY = 0, 0
-		if loveIsKeyDown"left"   dirX -= 1
-		if loveIsKeyDown"right"  dirX += 1
-		if loveIsKeyDown"up"     dirY -= 1
-		if loveIsKeyDown"down"   dirY += 1
+		if LK.isKeyDown"left"   dirX -= 1
+		if LK.isKeyDown"right"  dirX += 1
+		if LK.isKeyDown"up"     dirY -= 1
+		if LK.isKeyDown"down"   dirY += 1
 
 		local MAX_SPEED_X    :: 50.0
 		local MAX_SPEED_Y    :: 40.0
@@ -457,7 +457,7 @@ export updateEntity :: (level:Level, ent:Entity, dt:float) {
 		-- Handle shooting.
 		player.weaponCooldown -= dt
 
-		if (player.wantsToShoot or loveIsScancodeDown"x") and player.weaponCooldown <= 0 {
+		if (player.wantsToShoot or LK.isScancodeDown"x") and player.weaponCooldown <= 0 {
 			player.weaponCooldown  = 1/15
 			player.shootCount     += 1
 
@@ -723,7 +723,7 @@ export drawEntity :: (level:Level, ent:Entity) {
 		r = lerp(r, 1, damageEffect)
 		g = lerp(g, 1, damageEffect)
 		b = lerp(b, 1, damageEffect)
-		loveSetColor(r, g, b, a)
+		LG.setColor(r, g, b, a)
 		return r, g, b
 	}
 
@@ -736,20 +736,20 @@ export drawEntity :: (level:Level, ent:Entity) {
 	}
 
 	local drawTextInWorld :: (text:string, x,y:float, anchorX,anchorY=0.0, size=1.0) {
-		local fontH = loveGetHeight(fontWorld)
+		local fontH = fontWorld.getHeight!()
 
 		size /= fontH
 
-		local w = size * loveGetWidth(fontWorld, text)
+		local w = size * fontWorld.getWidth!(text)
 		local h = size * fontH
 
-		loveDrawText(text, x-anchorX*w, y-anchorY*h, 0, size)
+		LG.drawText(text, x-anchorX*w, y-anchorY*h, 0, size)
 	}
 
 	local DAMAGE_EFFECT_TIME  :: 0.10
 	local COLLISION_BOX_COLOR :: {.0, 1.0, .0, .4}
 
-	!if DEV  local drawCollisionBox = loveIsKeyDown"tab"
+	!if DEV  local drawCollisionBox = LK.isKeyDown"tab"
 
 	local damageEffect = clamp01(1 - (level.time-ent.timeDamaged) / DAMAGE_EFFECT_TIME)
 
@@ -759,9 +759,9 @@ export drawEntity :: (level:Level, ent:Entity) {
 		local SIZE_INNER :: .4*SIZE_OUTER
 		local player = cast(Player) ent
 		setColorWithEffects(damageEffect, 0, 0, 0)
-		loveDrawRectangleFill(player.x-SIZE_OUTER/2, player.y-SIZE_OUTER/2, SIZE_OUTER, SIZE_OUTER)
+		LG.drawRectangleFill(player.x-SIZE_OUTER/2, player.y-SIZE_OUTER/2, SIZE_OUTER, SIZE_OUTER)
 		setColorWithEffects(damageEffect, 1, 1, 1)
-		loveDrawRectangleFill(player.x-SIZE_INNER/2, player.y-SIZE_INNER/2, SIZE_INNER, SIZE_INNER)
+		LG.drawRectangleFill(player.x-SIZE_INNER/2, player.y-SIZE_INNER/2, SIZE_INNER, SIZE_INNER)
 
 	case Bullet:
 		local bullet = cast(Bullet) ent
@@ -773,15 +773,15 @@ export drawEntity :: (level:Level, ent:Entity) {
 		else
 			r,g,b = setColorWithEffects(damageEffect, 1, 0, 0)
 
-		loveGraphicsPushTransform()
-		loveCoordinateSystemTranslate(bullet.x, bullet.y)
-		loveCoordinateSystemRotate(bullet.angle+TAU/4)
-		loveDrawEllipseFill(0,0, .3*scale,1.8*scale, 24)
+		LG.pushTransform()
+		LG.coordsTranslate(bullet.x, bullet.y)
+		LG.coordsRotate(bullet.angle+TAU/4)
+		LG.drawEllipseFill(0,0, .3*scale,1.8*scale, 24)
 		!if DEV  if drawCollisionBox {
-			loveSetColor(COLLISION_BOX_COLOR)
-			loveDrawRectangleFill(-bullet.width/2*scale, -bullet.height/2*scale, bullet.width*scale, bullet.height*scale)
+			LG.setColor(COLLISION_BOX_COLOR)
+			LG.drawRectangleFill(-bullet.width/2*scale, -bullet.height/2*scale, bullet.width*scale, bullet.height*scale)
 		}
-		loveGraphicsPop()
+		LG.pop()
 
 		drawLight(level, bullet.x,bullet.y, 4,6, r,g,b,.2)
 
@@ -807,9 +807,9 @@ export drawEntity :: (level:Level, ent:Entity) {
 			case SIDE_WEAPONS:  r, g, b, text = .8, .8, .0, "S"
 		}
 
-		loveSetColor(r, g, b, .8)
-		loveDrawCircleFill(pickup.x, pickup.y, radius, 32)
-		loveSetColor(1)
+		LG.setColor(r, g, b, .8)
+		LG.drawCircleFill(pickup.x, pickup.y, radius, 32)
+		LG.setColor(1)
 		drawTextInWorld(text, pickup.x,pickup.y, .5,.5, 2.0+.1*pulse)
 
 	--
@@ -823,34 +823,34 @@ export drawEntity :: (level:Level, ent:Entity) {
 		local g       = lerp(0.40, 0.70, phase)
 		local b       = lerp(0.95, 0.60, phase)
 		setColorWithEffects(damageEffect, r, g, b)
-		loveDrawRectangleFill(carrier.x-carrier.width/2, carrier.y-carrier.height/2, carrier.width, carrier.height)
+		LG.drawRectangleFill(carrier.x-carrier.width/2, carrier.y-carrier.height/2, carrier.width, carrier.height)
 
 	case Fly:
 		local fly = cast(Fly) ent
 		setColorWithEffects(damageEffect, 1, .9, .4)
-		loveDrawRectangleFill(fly.x-fly.width/2, fly.y-fly.height/2, fly.width, fly.height)
+		LG.drawRectangleFill(fly.x-fly.width/2, fly.y-fly.height/2, fly.width, fly.height)
 
 	case Heavy:
 		local heavy = cast(Heavy) ent
 		setColorWithEffects(damageEffect, .6, .2, 1)
-		loveDrawRectangleFill(heavy.x-heavy.width/2, heavy.y-heavy.height/2, heavy.width, heavy.height)
+		LG.drawRectangleFill(heavy.x-heavy.width/2, heavy.y-heavy.height/2, heavy.width, heavy.height)
 
 	case Follower:
 		local follower = cast(Follower) ent
 		setColorWithEffects(damageEffect, 1, .4, .1)
-		loveDrawRectangleFill(follower.x-follower.width/2, follower.y-follower.height/2, follower.width, follower.height)
+		LG.drawRectangleFill(follower.x-follower.width/2, follower.y-follower.height/2, follower.width, follower.height)
 
-		!if DEV  if loveIsKeyDown"tab" {
-			loveSetColor(1, .5, 0)
-			loveSetLineWidth(.2)
-			loveDrawLine(follower.path)
-			loveSetLineWidth(1)
+		!if DEV  if LK.isKeyDown"tab" {
+			LG.setColor(1, .5, 0)
+			LG.setLineWidth(.2)
+			LG.drawLine(follower.path)
+			LG.setLineWidth(1)
 		}
 
 	case Turret:
 		local turret = cast(Turret) ent
 		setColorWithEffects(damageEffect, 1, .7, .7)
-		loveDrawRectangleFill(turret.x-turret.width/2, turret.y-turret.height/2, turret.width, turret.height)
+		LG.drawRectangleFill(turret.x-turret.width/2, turret.y-turret.height/2, turret.width, turret.height)
 
 	--
 	-- Effects
@@ -861,8 +861,8 @@ export drawEntity :: (level:Level, ent:Entity) {
 		local progress = 1 - spark.timeRemaining/spark.timeTotal
 		local radius   = lerp(.4, .2, progress)
 		local a        = 1 - progress^2
-		loveSetColor(1, 1, 1, a)
-		loveDrawCircleFill(spark.x, spark.y, radius, 5)
+		LG.setColor(1, 1, 1, a)
+		LG.drawCircleFill(spark.x, spark.y, radius, 5)
 		drawLight(level, spark.x,spark.y, 4*radius, 1,1,1,.5*a)
 
 	case Explosion:
@@ -870,10 +870,10 @@ export drawEntity :: (level:Level, ent:Entity) {
 		local progress  = 1 - explosion.timeRemaining/explosion.timeTotal
 		local radius    = explosion.radius * lerp(.1, 1, progress^.4)
 		local a         = .6 * (1 - sin(progress^2 * TAU/4))
-		loveSetColor(1, 1, 1, a)
-		loveSetBlendMode(LoveBlendMode.ADD)
-		loveDrawCircleFill(explosion.x, explosion.y, radius, 32)
-		loveResetBlendMode()
+		LG.setColor(1, 1, 1, a)
+		LG.setBlendMode(LG.BlendMode.ADD)
+		LG.drawCircleFill(explosion.x, explosion.y, radius, 32)
+		LG.resetBlendMode()
 		drawLight(level, explosion.x,explosion.y, 4*radius, 1,1,1,.8*a)
 
 	case TextFx:
@@ -881,14 +881,14 @@ export drawEntity :: (level:Level, ent:Entity) {
 		local progress = 1 - textFx.timeRemaining/textFx.timeTotal
 		local y        = textFx.y - 6*progress^1.5
 		local a        = textFx.a * (1-progress)^.5
-		loveSetColor(textFx.r, textFx.g, textFx.b, a)
+		LG.setColor(textFx.r, textFx.g, textFx.b, a)
 		drawTextInWorld(textFx.text, textFx.x,y, .5,.5, 2.5)
 	}
 
 	-- Collision box.
 	!if DEV  if drawCollisionBox and ent.entityType ~= Bullet {
-		loveSetColor(COLLISION_BOX_COLOR)
-		loveDrawRectangleFill(ent.x-ent.width/2, ent.y-ent.height/2, ent.width, ent.height)
+		LG.setColor(COLLISION_BOX_COLOR)
+		LG.drawRectangleFill(ent.x-ent.width/2, ent.y-ent.height/2, ent.width, ent.height)
 	}
 }
 

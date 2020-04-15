@@ -12,10 +12,10 @@
 !import "math"
 !import "string"
 
-!import "love/basic"
-!import "love/event"
-!import "love/filesystem"
-!import "love/graphics"
+local LE :: !import "love/event"
+local LF :: !import "love/filesystem"
+local LG :: !import "love/graphics"
+local LK :: !import "love/keyboard"
 
 
 
@@ -75,12 +75,12 @@ local highscore = 0
 
 
 local saveHighscore :: () {
-	local ok, err = loveWriteFile("highscore", format("%d", highscore))
+	local ok, err = LF.write("highscore", format("%d", highscore))
 	if not ok  print("Error: "..err)
 }
 
 local loadHighscore :: () {
-	local ok, data, err = loveReadFile("highscore")
+	local ok, data, err = LF.read("highscore")
 	if not ok {
 		print("Error: "..err)
 		return
@@ -137,7 +137,7 @@ local onLoad :: (args:[]string, argsRaw:[]string) {
 	print("APP_PATH: "..APP_PATH)
 	print("APP_DIRECTORY: "..APP_DIRECTORY)
 
-	loveSetAppDataFolderName("Lövely Snake")
+	LF.setAppDataFolderName("Lövely Snake")
 
 	loadHighscore()
 	startNewGame()
@@ -162,10 +162,10 @@ local requestDirection :: (using dir:Direction) {
 		player.directionQueued = dir
 }
 
-local onKeyPressed :: (key:LoveKey, scancode:LoveScancode, isRepeat:bool) {
+local onKeyPressed :: (key:LK.Key, scancode:LK.Scancode, isRepeat:bool) {
 	using Direction
 	if key == {
-		case "escape": loveQuit(0)
+		case "escape": LE.quit(0)
 		case "right":  requestDirection(RIGHT)
 		case "down":   requestDirection(DOWN)
 		case "left":   requestDirection(LEFT)
@@ -250,21 +250,21 @@ local onUpdate :: (dt:float) {
 
 
 local onDraw :: () {
-	local ww, wh = loveGetWindowDimensions()
+	local ww, wh = LG.getWindowDimensions()
 
 	local FLASH_DURATION :: .50
 	local scoreHighlight = max(1-(uiTime-scoreTime)/FLASH_DURATION, 0)^1.5
 
-	loveClear(0, .07, .2, 0)
+	LG.clear(0, .07, .2, 0)
 
 	local offsetX = round((ww-LEVEL_WIDTH_IN_PIXELS)/2)
 	local offsetY = round((wh-LEVEL_HEIGHT_IN_PIXELS)/2)
-	loveCoordinateSystemTranslate(offsetX, offsetY)
+	LG.coordsTranslate(offsetX, offsetY)
 
 	-- Grid.
-	loveSetColor(.2, 1, .5, .1)
-	for x = 0, LEVEL_WIDTH   loveDrawRectangleFill(x*TILE_SIZE-1, 0, 2, LEVEL_HEIGHT_IN_PIXELS)
-	for y = 0, LEVEL_HEIGHT  loveDrawRectangleFill(0, y*TILE_SIZE-1, LEVEL_WIDTH_IN_PIXELS, 2)
+	LG.setColor(.2, 1, .5, .1)
+	for x = 0, LEVEL_WIDTH   LG.drawRectangleFill(x*TILE_SIZE-1, 0, 2, LEVEL_HEIGHT_IN_PIXELS)
+	for y = 0, LEVEL_HEIGHT  LG.drawRectangleFill(0, y*TILE_SIZE-1, LEVEL_WIDTH_IN_PIXELS, 2)
 
 	-- Borders.
 	do {
@@ -274,32 +274,32 @@ local onDraw :: () {
 		local spacing = SPACING + 4*scoreHighlight
 		local border  = BORDER  + 2*scoreHighlight
 
-		loveSetColor(.2, 1, .5, .5-.1*scoreHighlight)
-		loveDrawRectangleFill(LEVEL_WIDTH_IN_PIXELS+spacing,  0, +border, LEVEL_HEIGHT_IN_PIXELS)
-		loveDrawRectangleFill(                     -spacing,  0, -border, LEVEL_HEIGHT_IN_PIXELS)
-		loveDrawRectangleFill(0, LEVEL_HEIGHT_IN_PIXELS+spacing, LEVEL_WIDTH_IN_PIXELS,  +border)
-		loveDrawRectangleFill(0,                       -spacing, LEVEL_WIDTH_IN_PIXELS,  -border)
+		LG.setColor(.2, 1, .5, .5-.1*scoreHighlight)
+		LG.drawRectangleFill(LEVEL_WIDTH_IN_PIXELS+spacing,  0, +border, LEVEL_HEIGHT_IN_PIXELS)
+		LG.drawRectangleFill(                     -spacing,  0, -border, LEVEL_HEIGHT_IN_PIXELS)
+		LG.drawRectangleFill(0, LEVEL_HEIGHT_IN_PIXELS+spacing, LEVEL_WIDTH_IN_PIXELS,  +border)
+		LG.drawRectangleFill(0,                       -spacing, LEVEL_WIDTH_IN_PIXELS,  -border)
 	}
 
 	-- Fruit.
 	local fruitGrowth = max(1-(uiTime-fruit.spawnTime)/FLASH_DURATION, 0)^1.5
-	loveSetColor(.4, .8, .1)
-	loveDrawCircleFill(
+	LG.setColor(.4, .8, .1)
+	LG.drawCircleFill(
 		(fruit.x+.5) * TILE_SIZE,
 		(fruit.y+.5) * TILE_SIZE,
 		(TILE_SIZE-4)/2 + 6*fruitGrowth
 	)
 
 	-- Player.
-	loveSetColor(1, .2, .5)
-	loveDrawRectangleFill(player.x*TILE_SIZE, player.y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
-	loveSetColor(1, .2, .5, .7)
-	for player.tail  loveDrawRectangleFill(it.x*TILE_SIZE+2, it.y*TILE_SIZE+2, TILE_SIZE-4, TILE_SIZE-4)
+	LG.setColor(1, .2, .5)
+	LG.drawRectangleFill(player.x*TILE_SIZE, player.y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	LG.setColor(1, .2, .5, .7)
+	for player.tail  LG.drawRectangleFill(it.x*TILE_SIZE+2, it.y*TILE_SIZE+2, TILE_SIZE-4, TILE_SIZE-4)
 
 	-- HUD.
-	loveCoordinateSystemReset()
-	loveSetColor(1, 1, 1, .8+.2*scoreHighlight)
-	loveDrawText(
+	LG.coordsReset()
+	LG.setColor(1, 1, 1, .8+.2*scoreHighlight)
+	LG.drawText(
 		format(
 			"Score: %d  ~  Last: %d  ~  Highscore: %d\nTime: %.1f seconds",
 			score, lastScore, highscore, uiTime-gameStartTime
@@ -311,12 +311,12 @@ local onDraw :: () {
 
 
 local main :: () {
-	using LoveEvent
-	loveSetEventHandler(LOAD,        onLoad)
-	loveSetEventHandler(KEY_PRESSED, onKeyPressed)
-	loveSetEventHandler(UPDATE,      onUpdate)
-	loveSetEventHandler(DRAW,        onDraw)
-	loveRemoveEventHandler(ERROR_HANDLER) -- We want Glóa to handle all errors (for now, at least).
+	using LE.Event
+	LE.setEventHandler(LOAD,        onLoad)
+	LE.setEventHandler(KEY_PRESSED, onKeyPressed)
+	LE.setEventHandler(UPDATE,      onUpdate)
+	LE.setEventHandler(DRAW,        onDraw)
+	LE.removeEventHandler(ERROR_HANDLER) -- We want Glóa to handle all errors (for now, at least).
 }
 
 
