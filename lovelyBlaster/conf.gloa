@@ -1,8 +1,7 @@
-local love :: !import "love/basic"
-local LE   :: !import "love/event"
+local LE :: !import "love/event"
 
 local main :: () {
-	LE.setConfigHandler((conf:love.Config) {
+	LE.setConfigHandler((conf:LE.Config) {
 		conf.identity         = "Lövely Blaster"
 
 		conf.window.title     = "Lövely Blaster"
