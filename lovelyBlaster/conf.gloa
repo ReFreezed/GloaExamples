@@ -1,4 +1,4 @@
-local LE :: !import "love/event"
+local LE :: !import "loveRevised/event"
 
 local main :: () {
 	LE.setConfigHandler((conf:LE.Config) {

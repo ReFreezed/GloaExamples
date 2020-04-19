@@ -12,10 +12,10 @@
 !import "math"
 !import "string"
 
-local LE :: !import "love/event"
-local LF :: !import "love/filesystem"
-local LG :: !import "love/graphics"
-local LK :: !import "love/keyboard"
+local LE :: !import "loveRevised/event"
+local LF :: !import "loveRevised/filesystem"
+local LG :: !import "loveRevised/graphics"
+local LK :: !import "loveRevised/keyboard"
 
 
 

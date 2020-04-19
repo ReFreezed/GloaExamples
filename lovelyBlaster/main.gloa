@@ -17,12 +17,12 @@ export !import "os"
 export !import "utils"
 export V2 :: !import "math/vector2"
 
-export LG :: !import "love/graphics"
-export LK :: !import "love/keyboard"
-export LM :: !import "love/math"
-local  LA :: !import "love/audio"
-local  LE :: !import "love/event"
-local  LF :: !import "love/filesystem"
+export LG :: !import "loveRevised/graphics"
+export LK :: !import "loveRevised/keyboard"
+export LM :: !import "loveRevised/math"
+local  LA :: !import "loveRevised/audio"
+local  LE :: !import "loveRevised/event"
+local  LF :: !import "loveRevised/filesystem"
 
 export !self
 export !load "entities"
