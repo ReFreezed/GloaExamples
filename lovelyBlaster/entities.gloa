@@ -173,7 +173,7 @@ export TextFx :: struct {
 
 local lastEntityId = 0
 
-export newEntity :: (level:Level, $T:type, initX,initY:float) -> T {
+export newEntity :: (level:Level, $T:Type, initX,initY:float) -> T {
 	!assert T ~= Entity
 	-- !assert T has Entity -- @Incomplete: Somehow make sure Entity is part of the type.
 
