@@ -982,10 +982,9 @@ export spawnBullet :: (level:Level, x,y:float, angle:float, modsToCopy:BulletMod
 	bullet.shotByPlayer = shotByPlayer
 
 	if modsToCopy ~= nil {
-		local structInfo = cast(TypeInfoStruct) getTypeInfo(BulletMods)
-		local mods       = cast(table) bullet.mods
+		local mods = cast(table) bullet.mods
 
-		for structInfo.members {
+		for type_info(BulletMods).members {
 			local name = it.name
 			mods[name] = (cast(table) cast(BulletMods) modsToCopy) [name] -- So much @Hack...
 		}
