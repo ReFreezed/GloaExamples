@@ -25,12 +25,12 @@ local  LE :: !import "loveRevised/event"
 local  LF :: !import "loveRevised/filesystem"
 
 export !self
-export !load "entities"
-export !load "enemyWaves"
+export !load "src/entities"
+export !load "src/enemyWaves"
 
 !run {
 	!import "compiler"
-	compile("conf.gloa")
+	compile("src/conf.gloa")
 }
 
 
@@ -157,7 +157,7 @@ export playSound :: (name:string, volumeScale=1.0) {
 	local clone = sound.source.clone!()
 	clone.setVolume!(clone.getVolume!() * getRandom(1-sound.volumeVariation, 1+sound.volumeVariation) * volumeScale)
 	clone.setPitch !(clone.getPitch !() * getRandom(1-sound.pitchVariation,  1+sound.pitchVariation))
-	LA.play(clone)
+	clone.play!()
 }
 
 
