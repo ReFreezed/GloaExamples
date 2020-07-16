@@ -131,7 +131,7 @@ local loadSounds :: () {
 	local loadSound :: (name:string, path:string, volume,volumeVar:float, pitch,pitchVar:float, loop=false) {
 		!if DISABLE_SOUNDS  path = "sounds/silence.ogg"
 
-		local source = LA.newSource(path, LA.SourceType.STATIC)
+		local source = LA.newSource(path, .STATIC)
 
 		source.setVolume!(volume)
 		source.setPitch!(pitch)
@@ -222,8 +222,8 @@ local onKeyPressed :: (key:LK.Key, scancode:LK.Scancode, isRepeat:bool) {
 		case "kp1": player.bulletMods.level    = 1
 		case "kp2": player.bulletMods.level    = 2
 		case "kp3": player.bulletMods.level    = 3
-		case "kp4": player.bulletMods.movement = BulletMovement.LINEAR
-		case "kp5": player.bulletMods.movement = BulletMovement.WAVE
+		case "kp4": player.bulletMods.movement = .LINEAR
+		case "kp5": player.bulletMods.movement = .WAVE
 		case "kp6": --
 		case "kp7": player.bulletMods.pulsing  = not player.bulletMods.pulsing
 		case "kp8": player.rearWeapon          = not player.rearWeapon
@@ -363,7 +363,7 @@ local onDraw :: () {
 	LG.coordsTranslate(shakeX, shakeY)
 
 	-- Stars.
-	LG.setBlendMode(LG.BlendMode.ADD)
+	LG.setBlendMode(.ADD)
 	for currentLevel.stars {
 		LG.setColor(1, 1, 1, lerp(.1, .3, it.size))
 		LG.drawAnchored(lightImage, it.x,it.y, .5,.5, 0, lerp(.01, .03, it.size))
@@ -378,7 +378,7 @@ local onDraw :: () {
 	do {
 		local iw, ih = lightImage.getDimensions!()
 
-		LG.setBlendMode(LG.BlendMode.ADD)
+		LG.setBlendMode(.ADD)
 		for currentLevel.lightsToDraw {
 			LG.setColor(it.r, it.g, it.b, it.a)
 			LG.drawAnchored(lightImage, it.x,it.y, .5,.5, 0, it.radiusX/(iw/2),it.radiusY/(ih/2))
