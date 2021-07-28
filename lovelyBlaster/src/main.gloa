@@ -7,8 +7,8 @@
 --=
 --============================================================]]
 
-export DEV            :: true
-export DISABLE_SOUNDS :: DEV and true
+export DEV            :: 1==1
+export DISABLE_SOUNDS :: DEV and !run indexOf(getProgramArguments(), "nosounds") and 1==1
 
 export !import "basic"
 export !import "io"
