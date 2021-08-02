@@ -10,11 +10,11 @@
 export DEV            :: 1==1
 export DISABLE_SOUNDS :: DEV and !run indexOf(getProgramArguments(), "nosounds") and 1==1
 
-export !import "basic"
-export !import "io"
-export !import "math"
-export !import "os"
-export !import "utils"
+global !import "basic"
+global !import "io"
+global !import "math"
+global !import "os"
+global !import "utils"
 export V2 :: !import "math/vector2"
 
 export LG :: !import "loveRevised/graphics"
@@ -24,9 +24,9 @@ local  LA :: !import "loveRevised/audio"
 local  LE :: !import "loveRevised/event"
 local  LF :: !import "loveRevised/filesystem"
 
-export !self
-export !load "src/entities"
-export !load "src/enemyWaves"
+global !self
+global !load "src/entities"
+global !load "src/enemyWaves"
 
 !run {
 	!import "compiler"

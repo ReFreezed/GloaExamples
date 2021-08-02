@@ -12,29 +12,29 @@
 
 local ESCAPE_CLOSES_APP :: 1==0
 
-export !import "basic"
-export !import "io"
-export !import "math"
-export !import "os"
+global !import "basic"
+global !import "io"
+global !import "math"
+global !import "os"
 
-export !import "wx/common"
-export !import "wx/wxadv_adv"
-export !import "wx/wxbase_base"
-export !import "wx/wxbase_datetime"
-export !import "wx/wxcore_appframe"
-export !import "wx/wxcore_controls"
-export !import "wx/wxcore_core"
-export !import "wx/wxcore_defsutils"
-export !import "wx/wxcore_dialogs"
-export !import "wx/wxcore_event"
-export !import "wx/wxcore_gdi"
-export !import "wx/wxcore_menutool"
-export !import "wx/wxcore_sizer"
-export !import "wx/wxcore_windows"
-export !import "wx/wxlua"
+global !import "wx/common"
+global !import "wx/wxadv_adv"
+global !import "wx/wxbase_base"
+global !import "wx/wxbase_datetime"
+global !import "wx/wxcore_appframe"
+global !import "wx/wxcore_controls"
+global !import "wx/wxcore_core"
+global !import "wx/wxcore_defsutils"
+global !import "wx/wxcore_dialogs"
+global !import "wx/wxcore_event"
+global !import "wx/wxcore_gdi"
+global !import "wx/wxcore_menutool"
+global !import "wx/wxcore_sizer"
+global !import "wx/wxcore_windows"
+global !import "wx/wxlua"
 
-export !self
-export !load "paint"
+global !self
+global !load "paint"
 
 local connectEvent :: (window:wxWindow,                eventType:wxEventType, onEvent:(event:wxCloseEvent  )) { window.Connect!(    eventType, cast((event:wxEvent)) cast(any) onEvent) }
 local connectEvent :: (window:wxWindow, id:wxWindowID, eventType:wxEventType, onEvent:(event:wxCloseEvent  )) { window.Connect!(id, eventType, cast((event:wxEvent)) cast(any) onEvent) }

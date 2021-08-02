@@ -1000,8 +1000,7 @@ export spawnPickup :: (level:Level, x,y:float, kind:Pickup.Kind) {
 }
 export spawnRandomPickup :: (level:Level, x,y:float) {
 	local COUNT :: !run #type_info(Pickup.Kind).members -- @Compiler @Incomplete: Provide a way of getting the highest enum member value.
-	local kind = cast(Pickup.Kind) cast(any) getRandom(COUNT)
-	-- local kind = cast(Pickup.Kind) getRandom(COUNT) -- @Compiler @Incomplete: Make this possible.
+	local kind = cast(Pickup.Kind) getRandom(COUNT)
 	spawnPickup(level, x, y, kind)
 }
 
